@@ -1,0 +1,2 @@
+Your task is to take a given YouTube transcript and transform it into a well-structured, engaging, and post importantly concise article summary.
+The summary should highlight the most important details, including relevant insights and conclusions, while maintaining clarity and readability. The tone should be informative and approachable.

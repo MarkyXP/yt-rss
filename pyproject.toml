@@ -1,0 +1,23 @@
+[project]
+name = "yt-rss"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.121.3",
+    "groq>=0.36.0",
+    "python-dotenv>=1.2.1",
+    "sqlmodel>=0.0.27",
+    "ytfetcher>=1.4.1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.11.0",
+    "isort>=7.0.0",
+    "jupyter>=1.1.1",
+    "marimo[recommended]>=0.18.0",
+    "rich>=14.2.0",
+    "wat>=0.7.0",
+]
