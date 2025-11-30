@@ -1,47 +1,24 @@
-"""
-# References:
-> https://fastapi.tiangolo.com/tutorial/sql-databases
-"""
+import json
+import os
+from dataclasses import dataclass
+from enum import Enum
 
-import asyncio
+from dotenv import load_dotenv
 
-import fastapi
-import httpx
-import sqlmodel
-
-from app.schemas import channel_list
-from app.web_queries import yt_handler
+load_dotenv()
 
 
-async def add_channel(
-    channel_name: str, db: sqlmodel.Session, web_client: httpx.AsyncClient
-) -> int:
-    """
-    Checks if a youtube channel exists, if it does it adds it to the database of
-    channels, and returns the channel ID.
-    If there is an error it returns -1.
-    """
-    url_exists = await yt_handler.check_channel_exists(channel_name, web_client)
-    if not url_exists:
-        return -1
-    channel = channel_list.YT_Channel(channel_handle=channel_name)
-    db.add(channel)
-    db.commit()
-    return channel.id
+@dataclass
+class Settings:
+    LLM_ENDPOINT : str
+    LLM_API_KEY : str
+    LLM_MODEL : str
 
 
-def list_channels(offset: int, limit: int, db: sqlmodel.Session):
-    channels = db.exec(
-        sqlmodel.select(channel_list.YT_Channel).offset(offset).limit(limit)
-    ).all()
-    return channels
+SETTINGS = Settings(
+    LLM_ENDPOINT=os.getenv("LLM_ENDPOINT"),
+    LLM_API_KEY = os.getenv("LLM_API_KEY"),
+    LLM_MODEL = os.getenv("LLM_MODEL")
+)
 
 
-def remove_channel(channel_id: int, db=sqlmodel.Session):
-    channel = db.get(channel_list.YT_Channel, channel_id)
-    if not channel:
-        raise fastapi.HTTPException(
-            status_code=404, detail=f"Channel ID '{channel_id}' not found"
-        )
-    db.delete(channel)
-    db.commit()

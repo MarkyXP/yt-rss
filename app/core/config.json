@@ -1,3 +1,5 @@
 {
-    "GROQ_MODEL" : "openai/gpt-oss-20b"
+    "app_name" : "",
+    "app_icon" : "",
+    "db_location" : "database.db"
 }

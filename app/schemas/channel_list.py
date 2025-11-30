@@ -10,7 +10,7 @@ import typing
 from pydantic import computed_field
 from sqlmodel import Field, SQLModel
 
-from app.web_queries.natural_text import generate_article
+from natural_text import generate_article
 
 
 class YT_Channel(SQLModel, table=True):

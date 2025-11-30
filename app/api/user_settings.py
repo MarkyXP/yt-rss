@@ -3,7 +3,7 @@ import typing
 import httpx
 from fastapi import APIRouter, Depends, Query
 
-from app.core import user_settings
+from app.db import user_settings
 from app.db import db
 from app.web_queries import web
 
@@ -21,12 +21,12 @@ async def add_channel(
 
 
 @router.get("/list_channels")
-def list_channels(
+async def list_channels(
     offset: int = 0,
     limit: typing.Annotated[int, Query(le=100)] = 100,
     db=Depends(db.get_session),
 ):
-    channels = user_settings.list_channels(offset, limit, db)
+    channels = await user_settings.list_channels(offset, limit, db)
     return {"status": "ok", "channels": channels}
 
 
