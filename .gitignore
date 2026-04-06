@@ -8,11 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
-.python-version
-.ipynb_checkpoints/
-__marimo__/
-.Notebooks/
 
-# Database
-database.db
+# Scratchpad
+.Notebooks/
+videos.db
+.vscode/launch.json
+*.db-shm
+*.db-wal
 .env

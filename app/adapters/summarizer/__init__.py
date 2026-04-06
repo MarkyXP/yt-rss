@@ -1,0 +1,1 @@
+from .summarizer_1 import get_summary
