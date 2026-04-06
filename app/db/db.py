@@ -34,7 +34,7 @@ async def get_db_connection() -> AsyncGenerator[aiosqlite.Connection]:
             rows = await cursor.fetchall()
             videos = [dict(row) for row in rows]
     """
-    logger.info("Creating database connection")
+    #logger.info("Creating database connection")
     conn = await aiosqlite.connect(DB_PATH)
     await conn.execute("PRAGMA journal_mode=WAL")
     conn.row_factory = aiosqlite.Row
@@ -42,7 +42,7 @@ async def get_db_connection() -> AsyncGenerator[aiosqlite.Connection]:
         yield conn
     finally:
         await conn.close()
-        logger.info("Database connection closed")
+        #logger.info("Database connection closed")
 
 async def init_db() -> None:
     """Initialize the database with required tables."""

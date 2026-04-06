@@ -1,12 +1,23 @@
 import asyncio
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
 
 from app.api import health_check, channels, rss
 from app.db import db
+from app.workflow import periodic_ingest
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic: create the background task
+    task = asyncio.create_task(periodic_ingest.bg_run_update())
+    yield
+    # Shutdown logic: cancel the task
+    task.cancel()
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(channels.router, prefix="/api/channels", tags=["Channel Management"])
 app.include_router(rss.router, prefix="/api/rss", tags=["RSS Reader"])

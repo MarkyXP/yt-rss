@@ -63,7 +63,7 @@ async def update_channels(
     )
 
 @router.get("/update_all_subscribed_channels")
-async def update_channels(
+async def update_all_subscribed_channels(
     db_conn = Depends(db.get_db_connection),
     client : httpx.AsyncClient = Depends(get_http_client)
 ):
