@@ -1,5 +1,11 @@
 from dataclasses import dataclass
 
+@dataclass
+class Channel_ID:
+    """The ID details for a channel"""
+    id : str
+    name : str
+
 class Entry:
     id : str
     title : str

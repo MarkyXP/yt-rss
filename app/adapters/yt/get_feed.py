@@ -12,15 +12,17 @@ import httpx
 import xmltodict
 from lxml import etree
 
-from .model_feed import Feed
+# from .model_feed import Channel_ID, Feed
+from app.adapters.yt.model_feed import Channel_ID, Feed
 
 _channel_id_pattern = re.compile(r"channel_id=([a-zA-Z0-9]*)")
+_channel_title_pattern = re.compile(r"\"pageTitle\":\"([^\"]*)\"")
 
 
-async def get_channel_id(session: httpx.AsyncClient, channel_name: str) -> str:
+async def get_channel_id(session: httpx.AsyncClient, channel_vanity_label: str) -> Channel_ID:
     """
-    Takes the channel's name (e.g. eevblog) or its link (e.g. https://www.youtube.com/eevblog)
-    and returns the channel ID (e.g. UC2DjFE7Xf11URZqWBigcVOQ)
+    Takes the channel's vanity label (e.g. eevblog) or its link (e.g. https://www.youtube.com/@eevblog)
+    and returns the channel ID (e.g. UC2DjFE7Xf11URZqWBigcVOQ) & channel title/name
 
     Args:
         session (httpx.AsyncClient): The HTTP session to use.
@@ -35,22 +37,26 @@ async def get_channel_id(session: httpx.AsyncClient, channel_name: str) -> str:
         ...         httpx.AsyncClient(),
         ...         "eevblog"
         ...     )
-        ... )  # doctest: +SKIP
-        'UC2DjFE7Xf11URZqWBigcVOQ'
+        ... )
+        Channel_ID(id='UC2DjFE7Xf11URZqWBigcVOQ', name='EEVblog')
 
         >>> asyncio.run(get_channel_id("markisthebest")) # doctest: +SKIP
         Traceback (most recent call last):
         ...
         ValueError: The number must be non-negative.
     """
-    if not channel_name.startswith("https://"):
-        channel_name = f"https://www.youtube.com/{channel_name}"
-    response = await session.get(channel_name)
+    if not channel_vanity_label.startswith("https://"):
+        channel_vanity_label = f"https://www.youtube.com/{channel_vanity_label}"
+    response = await session.get(channel_vanity_label)
     response.raise_for_status()
-    matches = _channel_id_pattern.findall(response.text)
-    if not matches:
-        raise ValueError(f"Could not find channel ID for {channel_name}")
-    return matches[0]
+    channel_id_matches = _channel_id_pattern.findall(response.text)
+    if not channel_id_matches:
+        raise ValueError(f"Could not find channel ID for {channel_vanity_label}")
+    channel_title_matches = _channel_title_pattern.findall(response.text)
+    if not channel_title_matches:
+        raise ValueError(f"Could not find channel title for {channel_vanity_label}")
+    channel_id = Channel_ID(channel_id_matches[0], channel_title_matches[0])
+    return channel_id
 
 
 async def get_rss_feed(session: httpx.AsyncClient, channel_id: str) -> Feed:
@@ -70,7 +76,7 @@ async def get_rss_feed(session: httpx.AsyncClient, channel_id: str) -> Feed:
         ...         session = httpx.AsyncClient(),
         ...         channel_id = "UC2DjFE7Xf11URZqWBigcVOQ"
         ...     )
-        ... ).id
+        ... ).id  # doctest: +SKIP
         '2DjFE7Xf11URZqWBigcVOQ'
     """
     url = f"https://www.youtube.com/feeds/videos.xml"
@@ -89,5 +95,6 @@ if __name__ == "__main__":
     import asyncio
     import doctest
     doctest.testmod(
+        verbose=True,
         optionflags= doctest.ELLIPSIS
     )

@@ -27,10 +27,10 @@ async def add_subscription(
     channel_id = await yt.get_channel_id(session, channel_name)
     db_index = await db.add_subscription(
         conn = db_conn,
-        channel_id = channel_id,
-        channel_name = channel_name
+        channel_id = channel_id.id,
+        channel_name = channel_id.name
     )
-    return channel_id
+    return channel_id.id
 
 async def get_subscription_ids(
         db_conn : aiosqlite.Connection
