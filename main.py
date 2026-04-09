@@ -6,6 +6,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 
 from app.api import health_check, channels, rss
+from app.core.config import CONFIG
 from app.db import db
 from app.workflow import periodic_ingest
 
@@ -34,7 +35,12 @@ app.include_router(rss.router, prefix="/api/rss", tags=["RSS Reader"])
 app.include_router(health_check.router, prefix="/api/checks", tags=["Health Check"])
 
 async def main():
-    config = uvicorn.Config("main:app", host="0.0.0.0", port=8001, log_level="info")
+    config = uvicorn.Config(
+        app = "main:app",
+        host=CONFIG.YTRSS_HOST,
+        port=CONFIG.YTRSS_PORT,
+        log_level="info"
+    )
     server = uvicorn.Server(config)
     await db.init_db()
     await server.serve()
