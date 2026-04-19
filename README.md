@@ -42,3 +42,10 @@ docker push ghcr.io/markyxp/yt-rss/yt-rss:20260406.01
 
 Output:
 > [Image](ghcr.io/markyxp/yt-rss/yt-rss:latest)
+
+# ToDo:
+- [ ] Add Auth to adding/ removing channels
+- [ ] Move update to a background thread (which checks if its already running. consider slowapi to rate limit)
+- [ ] Move the version to match the tags
+- [ ] Consider scraping the banner when adding the channel
+- [ ] Finish moving the add channel logic to the new structure. 
