@@ -1,11 +1,14 @@
 import asyncio
-import time
 import contextlib
+import os
+import time
 
 import uvicorn
 from fastapi import FastAPI, Request
+from loguru import logger
 
-from app.api import health_check, channels, rss
+from app.adapters.out_rss_feed import api
+from app.api import health_check, channels
 from app.core.config import CONFIG
 from app.db import db
 from app.workflow import periodic_ingest
@@ -13,11 +16,16 @@ from app.workflow import periodic_ingest
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup logic: create the background task
-    task = asyncio.create_task(periodic_ingest.bg_run_update())
+    ## Startup logic
+    # Create logs output
+    os.makedirs(".logs", exist_ok=True)
+    logger.add(".logs/app.log", enqueue=True, rotation="1 day", retention="14 days")
+    # Create the background task
+    task_run_update_bg = asyncio.create_task(periodic_ingest.bg_run_update())
     yield
     # Shutdown logic: cancel the task
-    task.cancel()
+    task_run_update_bg.cancel()
+    await logger.complete()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -31,7 +39,7 @@ async def add_timing(request: Request, call_next):
     return response
 
 app.include_router(channels.router, prefix="/api/channels", tags=["Channel Management"])
-app.include_router(rss.router, prefix="/api/rss", tags=["RSS Reader"])
+app.include_router(api.router, prefix="/api/v0.1/rss", tags=["RSS Reader"])
 app.include_router(health_check.router, prefix="/api/checks", tags=["Health Check"])
 
 async def main():

@@ -9,6 +9,7 @@ Example usage:
 """
 
 import aiosqlite
+import html
 from typing import List, Optional, Dict, Any, AsyncGenerator
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -69,6 +70,7 @@ async def init_db() -> None:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 channel_id TEXT UNIQUE NOT NULL,
                 channel_name TEXT NOT NULL,
+                channel_description TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -108,13 +110,13 @@ async def add_video(
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """
     args = (
-        channel_name,
-        video_name,
-        date_published,
-        url,
-        thumbnail,
-        transcript,
-        article,
+        html.unescape(channel_name),
+        html.unescape(video_name),
+        html.unescape(date_published),
+        html.unescape(url),
+        html.unescape(thumbnail),
+        html.unescape(transcript),
+        html.unescape(article),
     )
     try:
         cursor = await conn.execute(query, args)
@@ -226,13 +228,13 @@ async def update_video_article(conn: aiosqlite.Connection, url: str, article: st
     return cursor.rowcount > 0
 
 
-async def add_subscription(conn: aiosqlite.Connection, channel_id: str, channel_name: str) -> int:
+async def add_subscription(conn: aiosqlite.Connection, channel_id: str, channel_name: str, channel_description : str) -> int:
     """
     Add a channel subscription to the database.
     
     Example usage:
         async with get_db_connection() as conn:
-            subscription_id = await add_subscription(conn, "UC123456789", "Test Channel")
+            subscription_id = await add_subscription(conn, "UC123456789", "Test Channel", "Wow, what an amazing channel!)
     
     Returns:
         The ID of the inserted subscription.
@@ -240,10 +242,14 @@ async def add_subscription(conn: aiosqlite.Connection, channel_id: str, channel_
     cursor = await conn.execute(
         """
         INSERT OR IGNORE INTO subscriptions 
-        (channel_id, channel_name)
-        VALUES (?, ?)
+        (channel_id, channel_name, channel_description)
+        VALUES (?, ?, ?)
         """,
-        (channel_id, channel_name),
+        (
+            html.unescape(channel_id),
+            html.unescape(channel_name),
+            html.unescape(channel_description)
+        ),
     )
     await conn.commit()
     return cursor.lastrowid

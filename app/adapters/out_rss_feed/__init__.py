@@ -1,1 +1,1 @@
-from .basic import get_rss_feed
+from .db_qry import get_rss_feed

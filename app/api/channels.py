@@ -4,8 +4,9 @@ The interactions with the YouTube channels
 
 import asyncio
 from contextlib import asynccontextmanager
+import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 
 from app.db import db
 from app.workflow.ingest import ingest_rss_feed
@@ -23,7 +24,6 @@ async def get_http_client():# -> asyncio.AsyncGenerator[httpx.AsyncClient]:
     """
     async with httpx.AsyncClient() as client:
         yield client
-
 
 router = APIRouter()
 
@@ -64,10 +64,17 @@ async def update_channels(
 
 @router.get("/update_all_subscribed_channels")
 async def update_all_subscribed_channels(
+    background_tasks: BackgroundTasks,
     db_conn = Depends(db.get_db_connection),
     client : httpx.AsyncClient = Depends(get_http_client)
 ):
+    """
+    Fetches the RSS feeds for all subscribed YouTube channels,
+    generates the summary, and stores it in the DB.
+    """
     channel_ids = await subscription_management.get_subscription_ids(db_conn)
+    task_id = uuid.uuid4()
+    # background_tasks.add_task(write_notification, email, message="some notification")
     await asyncio.gather(
         *[ingest_rss_feed(
             session = client,
@@ -76,12 +83,12 @@ async def update_all_subscribed_channels(
         ) for channel_id in channel_ids]
     )
 
-@router.get("/get_subscriptions")
+@router.get("/list_subscriptions")
 async def list_subscriptions(
     db_conn = Depends(db.get_db_connection)
 ):
     """
-    An endpoint to list the subscriptions that a user has subscribed to
+    Returns all the YouTube channels that are subscribed to
     """
     return await subscription_management.list_all_subscription_details(
         db_conn
@@ -94,7 +101,7 @@ async def remove_subscription(
     db_conn = Depends(db.get_db_connection)
 ):
     """
-    An endpoint to remove a subscription from a channel
+    Remove a subscription for a YouTube channel
     """
     return await subscription_management.remove_subscription(
         db_conn,

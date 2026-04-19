@@ -24,13 +24,14 @@ async def add_subscription(
     """
     # Strip the https://youtube.com/
     channel_name = channel_name.lower().replace("https://www.youtube.com/", "")
-    channel_id = await yt.get_channel_id(session, channel_name)
+    channel_metadata = await yt.get_channel_metadata(session, channel_name)
     db_index = await db.add_subscription(
         conn = db_conn,
-        channel_id = channel_id.id,
-        channel_name = channel_id.name
+        channel_id = channel_metadata.id,
+        channel_name = channel_metadata.name,
+        channel_description = channel_metadata.description
     )
-    return channel_id.id
+    return channel_metadata.id
 
 async def get_subscription_ids(
         db_conn : aiosqlite.Connection

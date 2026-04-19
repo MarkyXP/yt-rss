@@ -13,13 +13,14 @@ import xmltodict
 from lxml import etree
 
 # from .model_feed import Channel_ID, Feed
-from app.adapters.yt.model_feed import Channel_ID, Feed
+from app.adapters.yt.model_feed import Channel_Metadata, Feed
 
 _channel_id_pattern = re.compile(r"channel_id=([a-zA-Z0-9]*)")
 _channel_title_pattern = re.compile(r"\"pageTitle\":\"([^\"]*)\"")
+_channel_description_pattern = re.compile(r"\<meta property\=\"og:description\" content=\"([^\"]*)\"")
 
 
-async def get_channel_id(session: httpx.AsyncClient, channel_vanity_label: str) -> Channel_ID:
+async def get_channel_metadata(session: httpx.AsyncClient, channel_vanity_label: str) -> Channel_Metadata:
     """
     Takes the channel's vanity label (e.g. eevblog) or its link (e.g. https://www.youtube.com/@eevblog)
     and returns the channel ID (e.g. UC2DjFE7Xf11URZqWBigcVOQ) & channel title/name
@@ -33,14 +34,14 @@ async def get_channel_id(session: httpx.AsyncClient, channel_vanity_label: str) 
 
     Usage:
         >>> asyncio.run(
-        ...     get_channel_id(
+        ...     get_channel_metadata(
         ...         httpx.AsyncClient(),
         ...         "eevblog"
         ...     )
         ... )
         Channel_ID(id='UC2DjFE7Xf11URZqWBigcVOQ', name='EEVblog')
 
-        >>> asyncio.run(get_channel_id("markisthebest")) # doctest: +SKIP
+        >>> asyncio.run(get_channel_metadata("markisthebest")) # doctest: +SKIP
         Traceback (most recent call last):
         ...
         ValueError: The number must be non-negative.
@@ -55,13 +56,18 @@ async def get_channel_id(session: httpx.AsyncClient, channel_vanity_label: str) 
     channel_title_matches = _channel_title_pattern.findall(response.text)
     if not channel_title_matches:
         raise ValueError(f"Could not find channel title for {channel_vanity_label}")
-    channel_id = Channel_ID(channel_id_matches[0], channel_title_matches[0])
-    return channel_id
+    channel_description_matches = _channel_description_pattern.findall(response.text)
+    channel_metadata = Channel_Metadata(
+        id = channel_id_matches[0],
+        name = channel_title_matches[0],
+        description = channel_description_matches[0] or ""
+    )
+    return channel_metadata
 
 
 async def get_rss_feed(session: httpx.AsyncClient, channel_id: str) -> Feed:
     """
-    Fetch the RSS feed of a YouTube channel.
+    Fetch the RSS feed from a YouTube channel.
 
     Args:
         session (httpx.AsyncClient): The HTTP session to use.

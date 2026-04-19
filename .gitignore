@@ -16,3 +16,4 @@ videos.db
 *.db-shm
 *.db-wal
 .env
+.logs/*
