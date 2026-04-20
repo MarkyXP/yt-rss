@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
     task_run_update_bg.cancel()
     await logger.complete()
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, version=CONFIG.APP_VERSION)
 
 
 @app.middleware("http")

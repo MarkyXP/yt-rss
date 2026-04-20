@@ -26,4 +26,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ghcr.io/markyxp/yt-rss:latest
+          tags:  |
+            ghcr.io/markyxp/yt-rss:latest
+            ghcr.io/markyxp/yt-rss:${{ github.ref_name }}
+          build-args: |
+            YTRSS_VERSION=${{ github.ref_name }}

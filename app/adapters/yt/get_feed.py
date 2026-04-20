@@ -18,6 +18,7 @@ from app.adapters.yt.model_feed import Channel_Metadata, Feed
 _channel_id_pattern = re.compile(r"channel_id=([a-zA-Z0-9]*)")
 _channel_title_pattern = re.compile(r"\"pageTitle\":\"([^\"]*)\"")
 _channel_description_pattern = re.compile(r"\<meta property\=\"og:description\" content=\"([^\"]*)\"")
+_channel_thumbnail_pattern = re.compile(r"itemprop\=\"thumbnailUrl\" href=\"([^\"]*)")
 
 
 async def get_channel_metadata(session: httpx.AsyncClient, channel_vanity_label: str) -> Channel_Metadata:
@@ -50,17 +51,25 @@ async def get_channel_metadata(session: httpx.AsyncClient, channel_vanity_label:
         channel_vanity_label = f"https://www.youtube.com/{channel_vanity_label}"
     response = await session.get(channel_vanity_label)
     response.raise_for_status()
+    # Get the Channel ID from the HTML
     channel_id_matches = _channel_id_pattern.findall(response.text)
     if not channel_id_matches:
         raise ValueError(f"Could not find channel ID for {channel_vanity_label}")
+    # Get the Channel Title from the HTML
     channel_title_matches = _channel_title_pattern.findall(response.text)
     if not channel_title_matches:
         raise ValueError(f"Could not find channel title for {channel_vanity_label}")
+    # Get the Channel Description from the HTML
     channel_description_matches = _channel_description_pattern.findall(response.text)
+    # Get the Channel Thumbnail URL from the HTML
+    channel_thumbnail_matches = _channel_thumbnail_pattern.findall(response.text)
+    if not channel_thumbnail_matches:
+        raise ValueError(f"Could not find channel thumbnail for {channel_vanity_label}")
     channel_metadata = Channel_Metadata(
         id = channel_id_matches[0],
         name = channel_title_matches[0],
-        description = channel_description_matches[0] or ""
+        description = channel_description_matches[0] or "",
+        thumbnail = channel_thumbnail_matches[0]
     )
     return channel_metadata
 

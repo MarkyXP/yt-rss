@@ -6,6 +6,7 @@ class Channel_Metadata:
     id : str
     name : str
     description : str
+    thumbnail : str
 
 class Entry:
     id : str

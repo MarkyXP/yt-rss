@@ -5,7 +5,7 @@ import aiosqlite
 import httpx
 from loguru import logger
 
-from app.adapters.summarizer.summarizer_1 import get_summary
+from app.adapters.summarizer.chat_jimmy import get_summary
 from app.adapters.yt import get_rss_feed, get_transcript, Entry
 from app.db import db
 from app.workflow import subscription_management

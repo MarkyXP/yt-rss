@@ -1,1 +1,1 @@
-from .summarizer_1 import get_summary
+from .chat_jimmy import get_summary

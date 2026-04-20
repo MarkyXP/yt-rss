@@ -29,7 +29,8 @@ async def add_subscription(
         conn = db_conn,
         channel_id = channel_metadata.id,
         channel_name = channel_metadata.name,
-        channel_description = channel_metadata.description
+        channel_description = channel_metadata.description,
+        channel_thumbnail = channel_metadata.thumbnail
     )
     return channel_metadata.id
 

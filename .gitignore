@@ -9,9 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
-# Scratchpad
+# Scratchpad, Logs, test environment files
 .Notebooks/
 videos.db
+database.db
 .vscode/launch.json
 *.db-shm
 *.db-wal

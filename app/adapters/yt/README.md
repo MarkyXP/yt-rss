@@ -93,3 +93,4 @@ Potential improvements:
 - Add support for pagination in channel/playlist results
 - Enhance transcript extraction to actually download and parse captions
 - Add support for more YouTube URL formats
+- Consider https://github.com/jawah/niquests , maybe?

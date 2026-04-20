@@ -71,6 +71,7 @@ async def init_db() -> None:
                 channel_id TEXT UNIQUE NOT NULL,
                 channel_name TEXT NOT NULL,
                 channel_description TEXT NOT NULL,
+                channel_thumbnail TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -228,13 +229,19 @@ async def update_video_article(conn: aiosqlite.Connection, url: str, article: st
     return cursor.rowcount > 0
 
 
-async def add_subscription(conn: aiosqlite.Connection, channel_id: str, channel_name: str, channel_description : str) -> int:
+async def add_subscription(
+        conn: aiosqlite.Connection,
+        channel_id: str,
+        channel_name: str,
+        channel_description : str,
+        channel_thumbnail : str
+) -> int:
     """
     Add a channel subscription to the database.
     
     Example usage:
         async with get_db_connection() as conn:
-            subscription_id = await add_subscription(conn, "UC123456789", "Test Channel", "Wow, what an amazing channel!)
+            subscription_id = await add_subscription(conn, "UC123456789", "Test Channel", "Wow, what an amazing channel!", "https://i.imgur.com/123456789.jpg")
     
     Returns:
         The ID of the inserted subscription.
@@ -242,13 +249,14 @@ async def add_subscription(conn: aiosqlite.Connection, channel_id: str, channel_
     cursor = await conn.execute(
         """
         INSERT OR IGNORE INTO subscriptions 
-        (channel_id, channel_name, channel_description)
-        VALUES (?, ?, ?)
+        (channel_id, channel_name, channel_description, channel_thumbnail)
+        VALUES (?, ?, ?, ?)
         """,
         (
             html.unescape(channel_id),
             html.unescape(channel_name),
-            html.unescape(channel_description)
+            html.unescape(channel_description),
+            channel_thumbnail
         ),
     )
     await conn.commit()
