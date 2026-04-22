@@ -8,10 +8,10 @@ from fastapi import FastAPI, Request
 from loguru import logger
 
 from app.adapters.out_rss_feed import api
-from app.api import health_check, channels
+from app.api import health_check, subscriptions
 from app.core.config import CONFIG
 from app.db import db
-from app.workflow import periodic_ingest
+from app.workflow import periodic_index
 
 
 @contextlib.asynccontextmanager
@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     os.makedirs(".logs", exist_ok=True)
     logger.add(".logs/app.log", enqueue=True, rotation="1 day", retention="14 days")
     # Create the background task
-    task_run_update_bg = asyncio.create_task(periodic_ingest.bg_run_update())
+    task_run_update_bg = asyncio.create_task(periodic_index.bg_run_update())
     yield
     # Shutdown logic: cancel the task
     task_run_update_bg.cancel()
@@ -38,7 +38,7 @@ async def add_timing(request: Request, call_next):
     response.headers["X-Response-Time"] = f"{(end_time - start_time)*1000:.2f}ms"
     return response
 
-app.include_router(channels.router, prefix="/api/channels", tags=["Channel Management"])
+app.include_router(subscriptions.router, prefix="/api/channels", tags=["Channel Management"])
 app.include_router(api.router, prefix="/api/v0.1/rss", tags=["RSS Reader"])
 app.include_router(health_check.router, prefix="/api/checks", tags=["Health Check"])
 

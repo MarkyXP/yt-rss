@@ -4,7 +4,7 @@ import time
 import httpx
 from loguru import logger
 
-from app.api import channels
+from app.api import subscriptions
 from app.core.config import CONFIG
 
 async def bg_run_update():
@@ -15,10 +15,10 @@ async def bg_run_update():
     while True:
         # Fetch the YouTube videos for each subscribed channel & update the database
         start_time = time.time()
-        async for db in channels.db.get_db_connection():
+        async for db in subscriptions.db.get_db_connection():
             async with httpx.AsyncClient() as client:
                 logger.info("Beginning background task to update all channels...")
-                await channels.update_all_subscribed_channels(
+                await subscriptions.update_all_subscribed_channels(
                     db_conn=db,
                     client = client
                 )

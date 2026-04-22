@@ -1,6 +1,6 @@
 [project]
 name = "ytrss"
-version = ""
+version="0"
 description = "Uses a LLM to summarise YouTube transcripts, and generates an RSS feed"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -11,6 +11,7 @@ dependencies = [
     "loguru>=0.7.3",
     "lxml>=6.0.2",
     "python-dotenv>=1.2.2",
+    "uuid-utils>=0.14.1",
     "uvicorn>=0.41.0",
     "xmltodict>=1.0.4",
 ]
@@ -19,4 +20,5 @@ dependencies = [
 dev = [
     "black>=26.1.0",
     "isort>=8.0.1",
+    "line-profiler>=5.0.2",
 ]

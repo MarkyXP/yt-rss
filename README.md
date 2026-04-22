@@ -58,8 +58,8 @@ All code, documentation, and mistakes were made by me.
 
 ## ToDo:
 - [ ] Write a GUI
-- [ ] Add Auth or rate limiting to adding / removing channels
-- [ ] Move update to a background thread (which checks if its already running. consider slowapi to rate limit)
+- [x] Add Auth or rate limiting to adding / removing channels
+- [x] Move update to a background thread (which checks if its already running. consider slowapi to rate limit)
 - [ ] Finish moving the add channel logic to the new structure. 
 - [x] Move the version to match the tags
 - [x] Consider scraping the banner when adding the channel

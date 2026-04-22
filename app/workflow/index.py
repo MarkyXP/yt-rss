@@ -8,10 +8,9 @@ from loguru import logger
 from app.adapters.summarizer.chat_jimmy import get_summary
 from app.adapters.yt import get_rss_feed, get_transcript, Entry
 from app.db import db
-from app.workflow import subscription_management
 
 
-async def _ingest_video(
+async def _index_video(
         session : httpx.AsyncClient,
         db_conn : aiosqlite.Connection,
         video : Entry
@@ -26,7 +25,8 @@ async def _ingest_video(
     # Get the transcripts
     transcript = await get_transcript(session, video.href)
     # Get the LLM Summary
-    summary = await get_summary(session, video, transcript)
+    llm_summary = await get_summary(session, video, transcript)
+    article = f'<img src="{video.thumbnail}">' + llm_summary
     # Add it to the datbase
     await db.add_video(
         conn = db_conn,
@@ -36,11 +36,11 @@ async def _ingest_video(
         url = video.href,
         thumbnail = video.thumbnail,
         transcript = transcript,
-        article = summary
+        article = article
     )
     
 
-async def ingest_rss_feed(
+async def index_rss_feed(
     session : httpx.AsyncClient,
     db_conn : aiosqlite.Connection,
     channel_id : str
@@ -53,7 +53,7 @@ async def ingest_rss_feed(
     feed = await get_rss_feed(session, channel_id)
     await asyncio.gather(
         *[
-            _ingest_video(session, db_conn, entry)
+            _index_video(session, db_conn, entry)
             for entry in feed.entries
         ]
     )
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         async with httpx.AsyncClient() as session:
             async for db_conn in db.get_db_connection():
                 results = await asyncio.gather(
-                    *[ingest_rss_feed(
+                    *[index_rss_feed(
                         session,
                         db_conn,
                         channel_id

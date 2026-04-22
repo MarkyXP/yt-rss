@@ -1,5 +1,8 @@
 """
+The following code are the queries used by the output RSS feed code
+to generate a RSS feed from the items in the database.
 
+References
  - https://www.rssboard.org/rss-specification#requiredChannelElements
  - https://www.rssboard.org/rss-specification#hrelementsOfLtitemgt
 

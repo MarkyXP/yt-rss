@@ -3,6 +3,7 @@ import textwrap
 import httpx
 from loguru import logger
 
+from .format_llm_resp import format_llm_resp
 from app.adapters.yt.model_feed import Entry
 from app.core.config import CONFIG
 
@@ -99,7 +100,7 @@ async def get_summary(
         [video_data_str[:20_000]]
     )
     logger.info(f"\tSummary of '{video_data.title}'\t{summary[:100]}...")
-    return summary
+    return format_llm_resp(summary)
 
 if __name__ == "__main__":
     import asyncio

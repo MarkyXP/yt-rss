@@ -5,22 +5,26 @@ References:
 |            |   |
 |------------|---|
 | Decorators | https://medium.com/django-unleashed/python-decorators-the-three-layer-pattern-449406659e5c |
+| Line Profiling | https://python.plainenglish.io/profiling-performance-in-python-step-by-step-guide-9d9625c56b32 |
 """
 
 import asyncio
 import collections
-import datetime
-import uuid
+import uuid_utils as uuid
 import functools
 import time
+import traceback
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from loguru import logger
 
 from app.db import db
 from app.workflow.index import index_rss_feed
 from app.workflow import subscription_management
 
 import httpx
+
+background_task_list = {}
 
 # @asynccontextmanager
 async def get_http_client():# -> asyncio.AsyncGenerator[httpx.AsyncClient]:
@@ -66,9 +70,8 @@ def rate_limiter(rate_limits : dict[int, int]):
                 if d_time < min_interval_time:
                     retry_secs = min_interval_time - d_time
                     raise HTTPException(
-                        status_code = status.HTTP_429_TOO_MANY_REQUESTS,
-                        detail = f"Please try again in {retry_secs} seconds",
-                        headers = {"Retry-After": str(retry_secs)}
+                        status_code = 429,
+                        detail = f"Please try again in {retry_secs} seconds"
                     )
             previous_run_times.appendleft(now)
             return await function(request, *args, **kwargs)
@@ -102,6 +105,25 @@ async def add_subscription(
         channel_name = channel_name
     )
 
+async def _background_update_channels(task_id : str, channel_ids : list[str]) -> None:
+    global background_task_list
+    logger.info(f"Starting update task {task_id} for channels {', '.join(channel_ids)}")
+    background_task_list[task_id] = f"Running update for channels {', '.join(channel_ids)}"
+    try:
+        async with httpx.AsyncClient() as client:
+            async for db_conn in db.get_db_connection():
+                await asyncio.gather(
+                    *[index_rss_feed(
+                        session = client,
+                        db_conn = db_conn,
+                        channel_id = channel_id
+                    ) for channel_id in channel_ids]
+                )
+        background_task_list[task_id] = f"Complete"
+    except Exception as e:
+        logger.error(f"Error updating channels {', '.join(channel_ids)}: {e}")
+        background_task_list[task_id] = f"Failed - {traceback.format_exc()}"
+
 # @router.post("/update_channels")
 async def update_channels(
     channel_ids : list[str] | None = None,
@@ -126,16 +148,26 @@ async def update_all_subscribed_channels(
     Fetches the RSS feeds for all subscribed YouTube channels,
     generates the summary, and stores it in the DB.
     """
+    
+    global background_task_list
     channel_ids = await subscription_management.get_subscription_ids(db_conn)
-    task_id = uuid.uuid4()
-    # background_tasks.add_task(write_notification, email, message="some notification")
-    await asyncio.gather(
-        *[index_rss_feed(
-            session = client,
-            db_conn = db_conn,
-            channel_id = channel_id
-        ) for channel_id in channel_ids]
+    task_id = str(uuid.uuid6())
+    background_tasks.add_task(
+        _background_update_channels,
+        task_id = task_id,
+        channel_ids = channel_ids
     )
+    return task_id
+
+@router.get("/get_update_status/{task_id}")
+async def get_update_status(task_id: str):
+    global background_task_list
+    status = background_task_list.get(task_id, "Error")
+    if status == "Error":
+        raise HTTPException(status_code=404, detail=f"Task id {task_id} not found.")
+    if status == "Complete":
+        background_task_list.pop(task_id)
+    return status
 
 @router.get("/list_subscriptions")
 async def list_subscriptions(
@@ -162,14 +194,14 @@ async def remove_subscription(
         channel_id
     )
 
-@router.get("/get_channel_details")
+# @router.get("/get_channel_details")
 async def get_channel_details(channel_id : str):
     """
     An endpoint to get the details of a channel
     """
     pass
 
-@router.get("/get_channel_videos")
+# @router.get("/get_channel_videos")
 async def get_channel_videos(channel_id : str):
     """
     An endpoint to get the videos of a channel
