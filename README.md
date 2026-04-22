@@ -45,13 +45,14 @@ services:
 ## AI Usage
 - While this tool uses a LLM to parse the transcript and generate the RSS feed:
   - LLM has **not** been used to generate any back-end code
-  - LLM **has** been used to support generating the front-end, however all the final code has been reviewed (and in most cases re-written) by me.
+  - LLM **will** be used to support generating the front-end, however all the final code has been reviewed (and in most cases re-written) by me.
   - LLM has **not** been used to generate any documentation
 
 All code, documentation, and mistakes were made by me.
 
 
 ## Documentation:
+(#ToDo)
 > https://github.com/mkdocstrings/mkdocstrings
 
 
@@ -59,6 +60,11 @@ All code, documentation, and mistakes were made by me.
 ## ToDo:
 - [ ] Write a GUI
 - [x] Add Auth or rate limiting to adding / removing channels
+- [ ] Add a check if the channel already exists (and not count against rate limit)
+- [ ] Only rate limit if there wasnt an internal error
+- [ ] Strip quotes from channel url
+- [ ] Enable follow redirects when parsing the youtube channel
+- [ ] Show the channel thumbnail in the rss feed
 - [x] Move update to a background thread (which checks if its already running. consider slowapi to rate limit)
 - [ ] Finish moving the add channel logic to the [new structure](https://medium.com/the-pythonworld/how-i-structure-large-python-projects-after-3-years-of-mistakes-ec7afad0f877). 
 - [x] Move the version to match the tags
