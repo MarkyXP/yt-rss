@@ -60,6 +60,6 @@ All code, documentation, and mistakes were made by me.
 - [ ] Write a GUI
 - [x] Add Auth or rate limiting to adding / removing channels
 - [x] Move update to a background thread (which checks if its already running. consider slowapi to rate limit)
-- [ ] Finish moving the add channel logic to the new structure. 
+- [ ] Finish moving the add channel logic to the [new structure](https://medium.com/the-pythonworld/how-i-structure-large-python-projects-after-3-years-of-mistakes-ec7afad0f877). 
 - [x] Move the version to match the tags
 - [x] Consider scraping the banner when adding the channel
