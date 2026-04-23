@@ -47,9 +47,10 @@ async def get_channel_metadata(session: httpx.AsyncClient, channel_vanity_label:
         ...
         ValueError: The number must be non-negative.
     """
+    channel_vanity_label = channel_vanity_label.strip("\"' \r\n\t")
     if not channel_vanity_label.startswith("https://"):
         channel_vanity_label = f"https://www.youtube.com/{channel_vanity_label}"
-    response = await session.get(channel_vanity_label)
+    response = await session.get(channel_vanity_label, follow_redirects=True)
     response.raise_for_status()
     # Get the Channel ID from the HTML
     channel_id_matches = _channel_id_pattern.findall(response.text)

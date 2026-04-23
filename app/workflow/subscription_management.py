@@ -89,8 +89,8 @@ async def remove_subscription(
     Returns:
         - bool: True if the subscription was successfully removed, False otherwise.
     """
-    count_dropped = await db.remove_subscription(
+    bool_dropped = await db.remove_subscription(
         db_conn,
         channel_id
     )
-    return count_dropped
+    return bool_dropped

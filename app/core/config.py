@@ -16,5 +16,6 @@ class Config:
     DB_LOCATION = os.getenv("DB_LOCATION", "./database.db")
     UPDATE_INTERVAL_MINS = int(os.getenv("UPDATE_INTERVAL_MINS", 30))
     APP_VERSION = os.getenv("YTRSS_VERSION", f"DEBUG_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
 
 CONFIG = Config()

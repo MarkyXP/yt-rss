@@ -1,0 +1,8 @@
+# uv add  mkdocstrings[python] mkdocs-material
+site_name: YT-RSS
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings

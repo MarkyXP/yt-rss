@@ -9,7 +9,7 @@ from app.core.config import CONFIG
 
 async def bg_run_update():
     """
-    Calls the app.api.channels.update_all_subscribed_channels function
+    Calls the app.api.subscriptions.update_all_subscribed_channels function
     every UPDATE_INTERVAL_MINS minutes.
     """
     while True:

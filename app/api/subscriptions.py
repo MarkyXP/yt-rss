@@ -12,12 +12,14 @@ import asyncio
 import collections
 import uuid_utils as uuid
 import functools
+import random
 import time
 import traceback
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from loguru import logger
 
+from app.core.users import USERS
 from app.db import db
 from app.workflow.index import index_rss_feed
 from app.workflow import subscription_management
@@ -26,7 +28,6 @@ import httpx
 
 background_task_list = {}
 
-# @asynccontextmanager
 async def get_http_client():# -> asyncio.AsyncGenerator[httpx.AsyncClient]:
     """
     An asynchronous dependency that provides an httpx.AsyncClient.
@@ -37,6 +38,17 @@ async def get_http_client():# -> asyncio.AsyncGenerator[httpx.AsyncClient]:
     async with httpx.AsyncClient() as client:
         yield client
 
+def check_authenticated(function):
+    @functools.wraps(function)
+    async def wrapper(request : Request, *args, **kwards):
+        request_token = request.cookies.get("auth_token", None)
+        if await USERS.is_valid_token(request_token):
+            return await function(request, *args, **kwards)
+        # Token is invalid or not found
+        delay_time = random.random()*2
+        await asyncio.sleep(delay_time)
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return wrapper
 
 def rate_limiter(rate_limits : dict[int, int]):
     """
@@ -77,7 +89,6 @@ def rate_limiter(rate_limits : dict[int, int]):
             return await function(request, *args, **kwargs)
         return wrapper
     return decorator
-
 
 router = APIRouter()
 
@@ -124,20 +135,6 @@ async def _background_update_channels(task_id : str, channel_ids : list[str]) ->
         logger.error(f"Error updating channels {', '.join(channel_ids)}: {e}")
         background_task_list[task_id] = f"Failed - {traceback.format_exc()}"
 
-# @router.post("/update_channels")
-async def update_channels(
-    channel_ids : list[str] | None = None,
-    db_conn = Depends(db.get_db_connection),
-    client : httpx.AsyncClient = Depends(get_http_client)
-):
-    await asyncio.gather(
-        *[index_rss_feed(
-            session = client,
-            db_conn = db_conn,
-            channel_id = channel_id
-        ) for channel_id in channel_ids]
-    )
-
 @router.get("/update_all_subscribed_channels")
 async def update_all_subscribed_channels(
     background_tasks: BackgroundTasks,
@@ -160,7 +157,13 @@ async def update_all_subscribed_channels(
     return task_id
 
 @router.get("/get_update_status/{task_id}")
-async def get_update_status(task_id: str):
+async def get_update_status(task_id: str) -> str:
+    """
+    Returns the status of the background update task
+
+    Returns:
+        str (["Error" | "Complete"])
+    """
     global background_task_list
     status = background_task_list.get(task_id, "Error")
     if status == "Error":
@@ -180,30 +183,21 @@ async def list_subscriptions(
         db_conn
     )
     
-
 @router.delete("/remove_subscriptions")
+@check_authenticated
 async def remove_subscription(
+    request : Request,
     channel_id : str,
     db_conn = Depends(db.get_db_connection)
 ):
     """
-    Remove a subscription for a YouTube channel
+    Remove a subscription for a YouTube channel.
+
+    Note: An admin account must be logged in, otherwise this will return
+    Error 401.
     """
     return await subscription_management.remove_subscription(
         db_conn,
         channel_id
     )
 
-# @router.get("/get_channel_details")
-async def get_channel_details(channel_id : str):
-    """
-    An endpoint to get the details of a channel
-    """
-    pass
-
-# @router.get("/get_channel_videos")
-async def get_channel_videos(channel_id : str):
-    """
-    An endpoint to get the videos of a channel
-    """
-    pass

@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from loguru import logger
 
 from app.adapters.out_rss_feed import api
-from app.api import health_check, subscriptions
+from app.api import health_check, subscriptions, user_management
 from app.core.config import CONFIG
 from app.db import db
 from app.workflow import periodic_index
@@ -40,6 +40,8 @@ async def add_timing(request: Request, call_next):
 
 app.include_router(subscriptions.router, prefix="/api/channels", tags=["Channel Management"])
 app.include_router(api.router, prefix="/api/v0.1/rss", tags=["RSS Reader"])
+if CONFIG.ADMIN_PASSWORD:
+    app.include_router(user_management.router, prefix="/user", tags=["User Management"])
 app.include_router(health_check.router, prefix="/api/checks", tags=["Health Check"])
 
 async def main():

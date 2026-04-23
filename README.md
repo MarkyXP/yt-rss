@@ -61,9 +61,9 @@ All code, documentation, and mistakes were made by me.
 - [ ] Write a GUI
 - [x] Add Auth or rate limiting to adding / removing channels
 - [ ] Add a check if the channel already exists (and not count against rate limit)
-- [ ] Only rate limit if there wasnt an internal error
-- [ ] Strip quotes from channel url
-- [ ] Enable follow redirects when parsing the youtube channel
+- [x] Only rate limit if there wasnt an internal error
+- [x] Strip quotes from channel url
+- [x] Enable follow redirects when parsing the youtube channel
 - [ ] Show the channel thumbnail in the rss feed
 - [x] Move update to a background thread (which checks if its already running. consider slowapi to rate limit)
 - [ ] Finish moving the add channel logic to the [new structure](https://medium.com/the-pythonworld/how-i-structure-large-python-projects-after-3-years-of-mistakes-ec7afad0f877). 
